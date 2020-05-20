@@ -21,7 +21,6 @@ demo_task1(void* arg)
   while(1)
   {
     HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    // HAL_Delay(50);
     ts_delay_ms(50);
   }
 }
@@ -32,7 +31,6 @@ demo_task2(void* arg)
   while(1)
   {
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_14);
-    //HAL_Delay(100);
     ts_delay_ms(100);
   }
 }
@@ -43,8 +41,7 @@ demo_task3(void* arg)
   while(1)
   {
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_15);
-    HAL_Delay(150);
-    //ts_delay_ms(150);
+    ts_delay_ms(150);
   }
 }
 
@@ -54,7 +51,6 @@ demo_task4(void* arg)
   while(1)
   {
     HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-    //HAL_Delay(1000);
     ts_delay_ms(1000);
   }
 }
@@ -64,17 +60,6 @@ __ts_hw_systick_handler_callback(void)
 {
   HAL_IncTick();
 }
-
-void
-__ts_idle_task_callback(void)
-{
-#if 0
-  __asm volatile(
-    " wfi         \n"
-  );
-#endif
-}
-
 
 void
 app_init_f(void)

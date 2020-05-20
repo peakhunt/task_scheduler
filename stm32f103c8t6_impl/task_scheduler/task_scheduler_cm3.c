@@ -82,7 +82,7 @@ __ts_pendsv_handler(void)
      " stmdb sp!, {r3, r14}             \n"
      " mov r0, %0                       \n"             // disable interrupts
      " msr basepri, r0                  \n"
-     " bl ts_schedule                   \n"             // __task_schedule()
+     " bl ts_schedule                   \n"             // ts_schedule()
      " mov r0, #0                       \n"
      " msr basepri, r0                  \n"             // enable interrupts
      " ldmia sp!, {r3, r14}             \n"
@@ -135,12 +135,18 @@ ts_hw_invoke_scheduler(void)
   //
   // logically this is necessary! but is it really?
   //
-  __DMB();
+  __DSB();
+  __ISB();
+  // __DMB();
 }
 
 void
 ts_hw_initialize_task_stack(task_t* task, task_entry_t entry, void* arg)
 {
+  //
+  // XXX
+  // shamelessly copied from FreeRTOS source
+  //
   task->sp_top--;
   *(task->sp_top) = 0x01000000UL;                       // PSR
   task->sp_top--;
@@ -202,4 +208,13 @@ ts_hw_start_scheduler(void)
   //
   while(1)
     ;
+}
+
+void
+ts_hw_enter_idle_task(void)
+{
+  __asm volatile(
+      " wfi   \n"
+  );
+
 }

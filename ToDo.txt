@@ -1,3 +1,6 @@
 a) priority
 b) generic sleep mechanism
 c) wait/wakeup
+d) event
+e) mutex
+f) queue

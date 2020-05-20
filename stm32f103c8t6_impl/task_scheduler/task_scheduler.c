@@ -124,6 +124,7 @@ __ts_idle_task(void* arg)
 {
   while(1)
   {
+    ts_hw_enter_idle_task();
     __ts_idle_task_callback();
     ts_yield();
   }
