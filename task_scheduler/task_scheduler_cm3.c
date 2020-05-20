@@ -1,4 +1,3 @@
-#include "stm32f1xx.h"
 #include "task_scheduler_hw.h"
 
 void __ts_svc_handler(void) __attribute__ (( naked ));

@@ -77,11 +77,11 @@ startup_stm32f103xb.s
 APP_SORUCES = \
 app/app.c \
 app/stm32f1xx_callbacks.c \
-task_scheduler/task_scheduler.c \
-task_scheduler/task_scheduler_cm3.c
+../task_scheduler/task_scheduler.c \
+../task_scheduler/task_scheduler_cm3.c
 
 APP_INCLUDES = \
--Iapp -Itask_scheduler
+-Iapp -I../task_scheduler
 
 C_SOURCES += $(APP_SORUCES)
 

@@ -2,6 +2,7 @@
 #define __TASK_SCHEDULER_DEF_H__
 
 #include <stdint.h>
+#include <stdio.h>
 #include "generic_list.h"
 #include "task_scheduler_config.h"
 
