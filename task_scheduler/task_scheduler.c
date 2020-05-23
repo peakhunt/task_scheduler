@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include "stm32f1xx.h"
 #include "task_scheduler.h"
 #include "task_scheduler_hw.h"
 
