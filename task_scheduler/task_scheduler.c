@@ -51,8 +51,6 @@ __add_new_task(task_t* task)
 void
 ts_schedule(void)
 {
-  _current_task->state = task_state_ready;
-
   _current_task = list_first_entry(&_run_q, task_t, rqe);
 
   _current_task->state = task_state_running;
@@ -98,6 +96,8 @@ ts_handle_tick(void)
     {
       list_del_init(&c->rqe);
       list_add_tail(&c->rqe, &_run_q);
+      c->state = task_state_ready;
+
       reschedule_needed = 1;
     }
   }
@@ -234,6 +234,7 @@ ts_yield(void)
   //
   // just move to the end of run queue
   //
+  t->state = task_state_ready;
   list_del_init(&t->rqe);
   list_add_tail(&t->rqe, &_run_q);
 
