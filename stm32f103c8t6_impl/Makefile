@@ -23,8 +23,8 @@ TARGET = stm32f103c8t6_demo
 DEBUG = 1
 # optimization
 #OPT = -Og
-OPT = -O3
-#OPT = -O0
+#OPT = -O3
+OPT = -O0
 
 
 #######################################
