@@ -39,7 +39,7 @@ extern void ts_yield(void);
 // these are called with interrupts disabled
 //
 extern void ts_handle_tick(void);
-extern void ts_schedule(void);
+extern void ts_pick_new_task(void);
 
 
 extern task_t* volatile _current_task;

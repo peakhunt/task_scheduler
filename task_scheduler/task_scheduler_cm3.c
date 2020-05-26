@@ -81,7 +81,7 @@ __ts_pendsv_handler(void)
      " stmdb sp!, {r3, r14}             \n"
      " mov r0, %0                       \n"             // disable interrupts
      " msr basepri, r0                  \n"
-     " bl ts_schedule                   \n"             // ts_schedule()
+     " bl ts_pick_new_task              \n"             // ts_pick_new_task()
      " mov r0, #0                       \n"
      " msr basepri, r0                  \n"             // enable interrupts
      " ldmia sp!, {r3, r14}             \n"
@@ -127,16 +127,14 @@ __ts_systick_handler(void)
 }
 
 void
-ts_hw_invoke_scheduler(void)
+ts_hw_context_switch(void)
 {
+  //
+  // here in this implementation
+  // instead of performing context switch,
+  // we invoke pendsv IRQ to do the context switching
+  //
   SCB->ICSR |= (1 << SCB_ICSR_PENDSVSET_Pos);
-
-  //
-  // logically this is necessary! but is it really?
-  //
-  __DSB();
-  __ISB();
-  // __DMB();
 }
 
 void
@@ -215,5 +213,4 @@ ts_hw_enter_idle_task(void)
   __asm volatile(
       " wfi   \n"
   );
-
 }

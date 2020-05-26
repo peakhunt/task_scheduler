@@ -49,7 +49,7 @@ __add_new_task(task_t* task)
  * XXX this runs with interrupts disabled!!!
  */
 void
-ts_schedule(void)
+ts_pick_new_task(void)
 {
   _current_task = list_first_entry(&_run_q, task_t, rqe);
 
@@ -75,15 +75,14 @@ ts_handle_tick(void)
   t->tick++;
   if(t->tick >= TASK_SCHEDULER_CONFIG_TIME_QUANTA)
   {
-    t->tick = 0;
+    if(!list_is_singular(&_run_q))
+    {
+      t->state = task_state_ready;
+      t->tick = 0;
+      list_move_tail(&t->rqe, &_run_q);
 
-    // remove from run_q
-    list_del_init(&t->rqe);
-
-    // append it to run_q
-    list_add_tail(&t->rqe, &_run_q);
-
-    reschedule_needed = 1;
+      reschedule_needed = 1;
+    }
   }
 
   //
@@ -94,8 +93,7 @@ ts_handle_tick(void)
     c->tick_left--;
     if(c->tick_left == 0)
     {
-      list_del_init(&c->rqe);
-      list_add_tail(&c->rqe, &_run_q);
+      list_move_tail(&c->rqe, &_run_q);
       c->state = task_state_ready;
 
       reschedule_needed = 1;
@@ -104,7 +102,7 @@ ts_handle_tick(void)
 
   if(reschedule_needed)
   {
-    ts_hw_invoke_scheduler();
+    ts_hw_context_switch();
   }
 }
 
@@ -214,10 +212,9 @@ ts_delay_ms(uint32_t ms)
   t->tick_left = nticks;
   t->state = task_state_sleeping;
 
-  list_del_init(&t->rqe);
-  list_add_tail(&t->rqe, &_tmr_q);
+  list_move_tail(&t->rqe, &_tmr_q);
 
-  ts_hw_invoke_scheduler();
+  ts_hw_context_switch();
 
   ts_leave_critical();
 }
@@ -229,16 +226,15 @@ ts_yield(void)
 
   ts_enter_critical();
 
-  t = _current_task;
+  if(!list_is_singular(&_run_q))
+  {
+    t = _current_task;
 
-  //
-  // just move to the end of run queue
-  //
-  t->state = task_state_ready;
-  list_del_init(&t->rqe);
-  list_add_tail(&t->rqe, &_run_q);
+    t->state = task_state_ready;
+    list_move_tail(&t->rqe, &_run_q);
 
-  ts_hw_invoke_scheduler();
+    ts_hw_context_switch();
+  }
 
   ts_leave_critical();
 }
