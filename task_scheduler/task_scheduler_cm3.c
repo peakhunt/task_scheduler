@@ -159,12 +159,25 @@ void
 ts_hw_disable_interrupts(void)
 {
   __set_BASEPRI(TASK_SCHEDULER_CONFIG_IRQ_DISABLE_PRIORITY);
+
+  //
+  // with this memory barrier
+  // core kernel structureѕ will be always synchronized
+  //
+  __ISB();
+  __DSB();
 }
 
 void
 ts_hw_enable_interrupts(void)
 {
   __set_BASEPRI(0);
+  //
+  // with this memory barrier
+  // core kernel structureѕ will be always synchronized
+  //
+  __ISB();
+  __DSB();
 }
 
 void

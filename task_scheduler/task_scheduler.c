@@ -111,14 +111,6 @@ ts_handle_tick(void)
 
   ts_leave_critical();
 
-  //
-  // XXX
-  // race condition might occur here
-  // Interrupts are just reenabled and
-  // if higher priority interrupts cause any
-  // task list change, we might need memory barrier here
-  //
-
   if(reschedule_needed)
   {
     __context_switch();
