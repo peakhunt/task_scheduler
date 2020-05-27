@@ -51,7 +51,8 @@ demo_task4(void* arg)
   while(1)
   {
     HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-    ts_delay_ms(1000);
+    // ts_delay_ms(1000);
+    HAL_Delay(1000);
   }
 }
 
