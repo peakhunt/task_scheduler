@@ -16,7 +16,7 @@ static LIST_HEAD_DECL(_tasks_q);
 static LIST_HEAD_DECL(_run_q);
 static LIST_HEAD_DECL(_tmr_q);
 
-static volatile uint32_t    _critical_nesting = 0;
+static volatile int32_t     _critical_nesting = 0;
 
 static task_t   _idle_task;
 static uint32_t _idle_task_stack[TASK_SCHEDULER_CONFIG_IDLE_TASK_STACK_SIZE] __attribute__((aligned(8)));
@@ -38,12 +38,12 @@ __add_new_task(task_t* task)
 }
 
 static void
-__context_switch(void)
+ts_schedule(void)
 {
+
   //
   // nothing to do on scheduler S/W side for now
   //
-
   ts_hw_context_switch();
 }
 
@@ -109,12 +109,12 @@ ts_handle_tick(void)
     }
   }
 
-  ts_leave_critical();
-
   if(reschedule_needed)
   {
-    __context_switch();
+    ts_schedule();
   }
+
+  ts_leave_critical();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -197,6 +197,12 @@ ts_enter_critical(void)
 void
 ts_leave_critical(void)
 {
+  if(_critical_nesting <= 0)
+  {
+    while(1)
+      ;
+  }
+
   _critical_nesting--;
 
   if(_critical_nesting == 0)
@@ -225,16 +231,15 @@ ts_delay_ms(uint32_t ms)
 
   list_move_tail(&t->rqe, &_tmr_q);
 
-  ts_leave_critical();
+  ts_schedule();
 
-  __context_switch();
+  ts_leave_critical();
 }
 
 void
 ts_yield(void)
 {
   task_t* t;
-  uint8_t reschedule_needed = 0;
 
   ts_enter_critical();
 
@@ -245,13 +250,8 @@ ts_yield(void)
     t->state = task_state_ready;
     list_move_tail(&t->rqe, &_run_q);
 
-    reschedule_needed = 1;
+    ts_schedule();
   }
 
   ts_leave_critical();
-
-  if(reschedule_needed)
-  {
-    __context_switch();
-  }
 }

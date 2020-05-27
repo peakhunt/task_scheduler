@@ -125,16 +125,8 @@ __ts_systick_handler(void)
 void
 ts_hw_context_switch(void)
 {
-  //
-  // here in this implementation
-  // instead of performing context switch,
-  // we invoke pendsv IRQ to do the context switching
-  //
-  ts_enter_critical();
-
   SCB->ICSR |= (1 << SCB_ICSR_PENDSVSET_Pos);
-
-  ts_leave_critical();
+  //SCB->ICSR = (1 << SCB_ICSR_PENDSVSET_Pos);
 }
 
 void
@@ -159,25 +151,19 @@ void
 ts_hw_disable_interrupts(void)
 {
   __set_BASEPRI(TASK_SCHEDULER_CONFIG_IRQ_DISABLE_PRIORITY);
-
-  //
-  // with this memory barrier
-  // core kernel structureѕ will be always synchronized
-  //
-  __ISB();
-  __DSB();
 }
 
 void
 ts_hw_enable_interrupts(void)
 {
-  __set_BASEPRI(0);
   //
   // with this memory barrier
   // core kernel structureѕ will be always synchronized
   //
   __ISB();
   __DSB();
+
+  __set_BASEPRI(0);
 }
 
 void
