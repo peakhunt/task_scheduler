@@ -119,11 +119,7 @@ __ts_systick_handler(void)
     return;
   }
 
-  ts_hw_disable_interrupts();
-
   ts_handle_tick();
-
-  ts_hw_enable_interrupts();
 }
 
 void
@@ -134,7 +130,11 @@ ts_hw_context_switch(void)
   // instead of performing context switch,
   // we invoke pendsv IRQ to do the context switching
   //
+  ts_enter_critical();
+
   SCB->ICSR |= (1 << SCB_ICSR_PENDSVSET_Pos);
+
+  ts_leave_critical();
 }
 
 void

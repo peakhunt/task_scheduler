@@ -16,7 +16,6 @@ static LIST_HEAD_DECL(_tasks_q);
 static LIST_HEAD_DECL(_run_q);
 static LIST_HEAD_DECL(_tmr_q);
 
-static volatile uint32_t    _num_ctx_switches = 0;
 static volatile uint32_t    _critical_nesting = 0;
 
 static task_t   _idle_task;
@@ -38,6 +37,16 @@ __add_new_task(task_t* task)
   ts_leave_critical();
 }
 
+static void
+__context_switch(void)
+{
+  //
+  // nothing to do on scheduler S/W side for now
+  //
+
+  ts_hw_context_switch();
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // task scheduler core : generic part
@@ -54,24 +63,24 @@ ts_pick_new_task(void)
   _current_task = list_first_entry(&_run_q, task_t, rqe);
 
   _current_task->state = task_state_running;
-  _num_ctx_switches++;
 }
 
 /*
  * perform round robind scheduling
  *
- * XXX this runs with interrupts disabled!!!
  */
 void
 ts_handle_tick(void)
 {
-  task_t* t = _current_task;
+  task_t  *t, *n;
   uint8_t reschedule_needed = 0;
-  task_t  *c, *n;
+
+  ts_enter_critical();
 
   //
   // mission #1 timing measurement for current task for RR scheduling
   //
+  t = _current_task;
   t->tick++;
   if(t->tick >= TASK_SCHEDULER_CONFIG_TIME_QUANTA)
   {
@@ -88,21 +97,31 @@ ts_handle_tick(void)
   //
   // mission #2 wake up any sleeping tasks on timers
   //
-  list_for_each_entry_safe(c, n, &_tmr_q, rqe)
+  list_for_each_entry_safe(t, n, &_tmr_q, rqe)
   {
-    c->tick_left--;
-    if(c->tick_left == 0)
+    t->tick_left--;
+    if(t->tick_left == 0)
     {
-      list_move_tail(&c->rqe, &_run_q);
-      c->state = task_state_ready;
+      list_move_tail(&t->rqe, &_run_q);
+      t->state = task_state_ready;
 
       reschedule_needed = 1;
     }
   }
 
+  ts_leave_critical();
+
+  //
+  // XXX
+  // race condition might occur here
+  // Interrupts are just reenabled and
+  // if higher priority interrupts cause any
+  // task list change, we might need memory barrier here
+  //
+
   if(reschedule_needed)
   {
-    ts_hw_context_switch();
+    __context_switch();
   }
 }
 
@@ -214,15 +233,16 @@ ts_delay_ms(uint32_t ms)
 
   list_move_tail(&t->rqe, &_tmr_q);
 
-  ts_hw_context_switch();
-
   ts_leave_critical();
+
+  __context_switch();
 }
 
 void
 ts_yield(void)
 {
   task_t* t;
+  uint8_t reschedule_needed = 0;
 
   ts_enter_critical();
 
@@ -233,8 +253,13 @@ ts_yield(void)
     t->state = task_state_ready;
     list_move_tail(&t->rqe, &_run_q);
 
-    ts_hw_context_switch();
+    reschedule_needed = 1;
   }
 
   ts_leave_critical();
+
+  if(reschedule_needed)
+  {
+    __context_switch();
+  }
 }
