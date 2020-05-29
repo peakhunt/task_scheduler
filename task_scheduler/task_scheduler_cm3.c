@@ -8,7 +8,7 @@ void __ts_hw_systick_handler_callback(void) __attribute__ (( weak ));
 
 static void __start_first_task(void) __attribute__ (( naked ));
 
-static volatile uint8_t    _scheduler_started = 0;
+static volatile uint8_t   _scheduler_started = 0;
 
 static void
 __start_first_task(void)
@@ -125,8 +125,15 @@ __ts_systick_handler(void)
 void
 ts_hw_context_switch(void)
 {
+  //
+  // on cortex-m platform,
+  // we just invoke PendSV to do actual context switching
+  //
+  ts_hw_disable_interrupts();
+
   SCB->ICSR |= (1 << SCB_ICSR_PENDSVSET_Pos);
-  //SCB->ICSR = (1 << SCB_ICSR_PENDSVSET_Pos);
+
+  ts_hw_enable_interrupts();    // actual context switching occurs here
 }
 
 void

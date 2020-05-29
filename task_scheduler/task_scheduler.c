@@ -37,16 +37,6 @@ __add_new_task(task_t* task)
   ts_leave_critical();
 }
 
-static void
-ts_schedule(void)
-{
-
-  //
-  // nothing to do on scheduler S/W side for now
-  //
-  ts_hw_context_switch();
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 //
 // task scheduler core : generic part
@@ -109,12 +99,18 @@ ts_handle_tick(void)
     }
   }
 
+  ts_leave_critical();
+
+  //
+  // XXX might cause unnecessary context switching
+  // due to race conditions here
+  // how to prevent that???
+  //
+
   if(reschedule_needed)
   {
-    ts_schedule();
+    ts_hw_context_switch();
   }
-
-  ts_leave_critical();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -231,15 +227,22 @@ ts_delay_ms(uint32_t ms)
 
   list_move_tail(&t->rqe, &_tmr_q);
 
-  ts_schedule();
-
   ts_leave_critical();
+
+  //
+  // XXX might cause unnecessary context switching
+  // due to race conditions here
+  // how to prevent that???
+  //
+
+  ts_hw_context_switch();
 }
 
 void
 ts_yield(void)
 {
   task_t* t;
+  uint8_t reschedule_needed = 0;
 
   ts_enter_critical();
 
@@ -250,8 +253,18 @@ ts_yield(void)
     t->state = task_state_ready;
     list_move_tail(&t->rqe, &_run_q);
 
-    ts_schedule();
+    reschedule_needed = 1;
   }
-
   ts_leave_critical();
+
+  //
+  // XXX might cause unnecessary context switching
+  // due to race conditions here
+  // how to prevent that???
+  //
+
+  if(reschedule_needed)
+  {
+    ts_hw_context_switch();
+  }
 }
