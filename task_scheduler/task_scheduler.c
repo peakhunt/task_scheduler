@@ -30,10 +30,8 @@ static void
 __add_new_task(task_t* task)
 {
   ts_enter_critical();
-
   list_add_tail(&task->tqe, &_tasks_q);
   list_add_tail(&task->rqe, &_run_q);
-
   ts_leave_critical();
 }
 
@@ -66,7 +64,6 @@ ts_handle_tick(void)
   uint8_t reschedule_needed = 0;
 
   ts_enter_critical();
-
   //
   // mission #1 timing measurement for current task for RR scheduling
   //
@@ -98,7 +95,6 @@ ts_handle_tick(void)
       reschedule_needed = 1;
     }
   }
-
   ts_leave_critical();
 
   //
@@ -149,7 +145,11 @@ void
 ts_start(void)
 {
   // create idle task
-  ts_create_task(&_idle_task, __ts_idle_task, _idle_task_stack, TASK_SCHEDULER_CONFIG_IDLE_TASK_STACK_SIZE, NULL);
+  ts_create_task(&_idle_task,
+      __ts_idle_task,
+      _idle_task_stack,
+      TASK_SCHEDULER_CONFIG_IDLE_TASK_STACK_SIZE,
+      NULL);
 
   // disable interrupts
   ts_hw_disable_interrupts();
@@ -219,14 +219,12 @@ ts_delay_ms(uint32_t ms)
   }
 
   ts_enter_critical();
-
   t = _current_task;
 
   t->tick_left = nticks;
   t->state = task_state_sleeping;
 
   list_move_tail(&t->rqe, &_tmr_q);
-
   ts_leave_critical();
 
   //
@@ -245,7 +243,6 @@ ts_yield(void)
   uint8_t reschedule_needed = 0;
 
   ts_enter_critical();
-
   if(!list_is_singular(&_run_q))
   {
     t = _current_task;
