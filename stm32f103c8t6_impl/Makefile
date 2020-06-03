@@ -78,7 +78,7 @@ APP_SORUCES = \
 app/app.c \
 app/stm32f1xx_callbacks.c \
 ../task_scheduler/task_scheduler.c \
-../task_scheduler/task_scheduler_cm3.c
+../task_scheduler/port/arm_cm3/task_scheduler_cm3.c
 
 APP_INCLUDES = \
 -Iapp -I../task_scheduler
