@@ -45,7 +45,10 @@ LFLAGS = -mmcu=$(MCU)
 LFLAGS += -Wl,-Map=$(MAPFILE),--cref,--gc-sections
 LFLAGS += -lm
 
-OBJECTS := $(addprefix  obj/,$(SOURCES:.c=.o))
+#OBJECTS := $(addprefix obj/,$(SOURCES:.c=.o))
+OBJECTS := $(addprefix obj/,$(notdir $(SOURCES:.c=.o)))
+vpath %.c $(sort $(dir $(SOURCES)))
+
 LINKED := $(addprefix obj/, $(TARGET:.hex=.elf))
 BINARY := $(addprefix obj/, $(TARGET:.hex=.bin))
 MAPFILE := $(addprefix obj/, $(TARGET:.hex=.map))

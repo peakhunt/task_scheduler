@@ -61,7 +61,7 @@ LEDTask2(void* pvParameters)
 	}
 }
 
-#if 0 // for preemption test
+#if 1 // for preemption test
 static void
 LEDTask3(void* pvParameters)
 {
