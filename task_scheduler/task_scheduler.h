@@ -15,14 +15,14 @@ typedef enum
 
 typedef struct
 {
-  volatile uint32_t*  sp_top;       // stack pointer top
-  uint32_t            status;       // task status flags
-  struct list_head    rqe;          // run queue entry
-  struct list_head    tqe;          // tasks queue entry
+  volatile StackType_t* sp_top;       // stack pointer top
+  uint32_t              status;       // task status flags
+  struct list_head      rqe;          // run queue entry
+  struct list_head      tqe;          // tasks queue entry
 
-  volatile uint32_t   tick;         // number of ticks that this task has been running
-  task_state_t        state;
-  uint32_t            tick_left;
+  volatile uint32_t     tick;         // number of ticks that this task has been running
+  task_state_t          state;
+  uint32_t              tick_left;
 } task_t;
 
 typedef void (*task_entry_t)(void*);

@@ -3,6 +3,8 @@
 
 #include "stm32f1xx.h"
 
+typedef uint32_t StackType_t;
+
 //
 // any IRQ whose priority is lower than this number (higher priority )
 // shouldn't use any of task scheduler API!
