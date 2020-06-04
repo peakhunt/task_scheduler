@@ -29,7 +29,7 @@ typedef void (*task_entry_t)(void*);
 
 extern void ts_init(void);
 extern void ts_start(void);
-extern void ts_create_task(task_t* task, task_entry_t entry, void* stack, uint32_t stack_size, void* arg);
+extern void ts_create_task(task_t* task, task_entry_t entry, StackType_t* stack, uint32_t stack_size, void* arg);
 extern void ts_enter_critical(void);
 extern void ts_leave_critical(void);
 extern void ts_delay_ms(uint32_t ms);

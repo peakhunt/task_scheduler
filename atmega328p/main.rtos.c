@@ -10,7 +10,7 @@
 #define PERIOD3       800
 #define PERIOD4       1600
 
-#define STACK_SIZE    (32 * 3)
+#define STACK_SIZE    (32 * 8)
 
 //#define STACK_ATTRIBUTE __attribute__((aligned(8)));
 #define STACK_ATTRIBUTE 
@@ -61,7 +61,6 @@ LEDTask2(void* pvParameters)
 	}
 }
 
-#if 0 // for preemption test
 static void
 LEDTask3(void* pvParameters)
 {
@@ -73,7 +72,7 @@ LEDTask3(void* pvParameters)
     // 16000000U Clock
     //
     // 1600U is 1ms
-    for(uint16_t i = 0; i < 100; i++)
+    for(uint16_t i = 0; i < 1000; i++)
     {
       for(uint16_t j = 0; j < 1600; j++)
       {
@@ -83,18 +82,6 @@ LEDTask3(void* pvParameters)
     // ts_delay_ms(300);
 	}
 }
-#else
-static void
-LEDTask3(void* pvParameters)
-{
-	while(1)
-	{
-    PORTC = (PORTC ^ _BV(PC0));
-
-    ts_delay_ms(70);
-	}
-}
-#endif
 
 static void
 init_tasks(void)

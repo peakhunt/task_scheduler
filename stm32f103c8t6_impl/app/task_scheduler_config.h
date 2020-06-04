@@ -4,6 +4,7 @@
 #include "stm32f1xx.h"
 
 typedef uint32_t StackType_t;
+#define TASK_SCHEDULER_CONFIG_STACK_ALIGN   __attribute__((aligned(8)))
 
 //
 // any IRQ whose priority is lower than this number (higher priority )

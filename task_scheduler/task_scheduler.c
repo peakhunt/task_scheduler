@@ -18,8 +18,8 @@ static LIST_HEAD_DECL(_tmr_q);
 
 static volatile int32_t     _critical_nesting = 0;
 
-static task_t   _idle_task;
-static uint32_t _idle_task_stack[TASK_SCHEDULER_CONFIG_IDLE_TASK_STACK_SIZE] __attribute__((aligned(8)));
+static task_t       _idle_task;
+static StackType_t  _idle_task_stack[TASK_SCHEDULER_CONFIG_IDLE_TASK_STACK_SIZE] TASK_SCHEDULER_CONFIG_STACK_ALIGN;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -71,13 +71,23 @@ ts_handle_tick(void)
   t->tick++;
   if(t->tick >= TASK_SCHEDULER_CONFIG_TIME_QUANTA)
   {
+    list_del_init(&t->rqe);
+
+    //
+    // idle task is always in run_q
+    //
     if(!list_is_singular(&_run_q))
     {
       t->state = task_state_ready;
       t->tick = 0;
-      list_move_tail(&t->rqe, &_run_q);
+      list_add_tail(&t->rqe, &_run_q);
 
       reschedule_needed = 1;
+    }
+    else
+    {
+      list_add(&t->rqe, &_run_q);
+      t->tick = 0;
     }
   }
 
@@ -162,9 +172,9 @@ ts_start(void)
 }
 
 void
-ts_create_task(task_t* task, task_entry_t entry, void* stack, uint32_t stack_size, void* arg)
+ts_create_task(task_t* task, task_entry_t entry, StackType_t* stack, uint32_t stack_size, void* arg)
 {
-  task->sp_top  = stack + stack_size;
+  task->sp_top  = &stack[stack_size -1];
   task->status  = 0;
   task->tick    = 0;
   task->state   = task_state_ready;
