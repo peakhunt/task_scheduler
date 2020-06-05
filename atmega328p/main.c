@@ -32,7 +32,7 @@ init_led(void)
   DDRC = 0x01;      // PC0
 }
 
-  static void
+static void
 LEDTask1(void* pvParameters)
 {
   while(1)
@@ -51,7 +51,7 @@ LEDTask1(void* pvParameters)
   }
 }
 
-  static void
+static void
 LEDTask2(void* pvParameters)
 {
   while(1)
@@ -62,7 +62,7 @@ LEDTask2(void* pvParameters)
 }
 
 #if 1 // for preemption test
-  static void
+static void
 LEDTask3(void* pvParameters)
 {
   while(1)
@@ -84,7 +84,7 @@ LEDTask3(void* pvParameters)
   }
 }
 #else
-  static void
+static void
 LEDTask3(void* pvParameters)
 {
   while(1)
@@ -96,7 +96,7 @@ LEDTask3(void* pvParameters)
 }
 #endif
 
-  static void
+static void
 init_tasks(void)
 {
   ts_create_task(&_led_task1, LEDTask1, _led_task_stack1, sizeof(_led_task_stack1), NULL);
@@ -104,7 +104,7 @@ init_tasks(void)
   ts_create_task(&_led_task3, LEDTask3, _led_task_stack3, sizeof(_led_task_stack3), NULL);
 }
 
-  int
+int
 main(void)
 {
   init_led();
