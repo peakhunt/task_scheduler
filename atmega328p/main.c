@@ -32,11 +32,11 @@ init_led(void)
   DDRC = 0x01;      // PC0
 }
 
-static void
+  static void
 LEDTask1(void* pvParameters)
 {
-	while(1)
-	{
+  while(1)
+  {
     PORTB = (PORTB ^ _BV(PB5));
     ts_delay_ms(PERIOD4);
 
@@ -48,25 +48,25 @@ LEDTask1(void* pvParameters)
 
     PORTB = (PORTB ^ _BV(PB5));
     ts_delay_ms(PERIOD1);
-	}
+  }
 }
 
-static void
+  static void
 LEDTask2(void* pvParameters)
 {
-	while(1)
-	{
+  while(1)
+  {
     PORTD = (PORTD ^ _BV(PD5));
     ts_delay_ms(100);
-	}
+  }
 }
 
 #if 1 // for preemption test
-static void
+  static void
 LEDTask3(void* pvParameters)
 {
-	while(1)
-	{
+  while(1)
+  {
     PORTC = (PORTC ^ _BV(PC0));
 
     //
@@ -81,22 +81,22 @@ LEDTask3(void* pvParameters)
       }
     }
     // ts_delay_ms(300);
-	}
+  }
 }
 #else
-static void
+  static void
 LEDTask3(void* pvParameters)
 {
-	while(1)
-	{
+  while(1)
+  {
     PORTC = (PORTC ^ _BV(PC0));
 
     ts_delay_ms(70);
-	}
+  }
 }
 #endif
 
-static void
+  static void
 init_tasks(void)
 {
   ts_create_task(&_led_task1, LEDTask1, _led_task_stack1, sizeof(_led_task_stack1), NULL);
@@ -104,7 +104,7 @@ init_tasks(void)
   ts_create_task(&_led_task3, LEDTask3, _led_task_stack3, sizeof(_led_task_stack3), NULL);
 }
 
-int
+  int
 main(void)
 {
   init_led();
