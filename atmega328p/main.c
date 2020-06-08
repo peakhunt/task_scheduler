@@ -35,8 +35,8 @@ init_led(void)
 static void
 LEDTask1(void* pvParameters)
 {
-	while(1)
-	{
+  while(1)
+  {
     PORTB = (PORTB ^ _BV(PB5));
     ts_delay_ms(PERIOD4);
 
@@ -48,25 +48,25 @@ LEDTask1(void* pvParameters)
 
     PORTB = (PORTB ^ _BV(PB5));
     ts_delay_ms(PERIOD1);
-	}
+  }
 }
 
 static void
 LEDTask2(void* pvParameters)
 {
-	while(1)
-	{
+  while(1)
+  {
     PORTD = (PORTD ^ _BV(PD5));
     ts_delay_ms(100);
-	}
+  }
 }
 
 #if 1 // for preemption test
 static void
 LEDTask3(void* pvParameters)
 {
-	while(1)
-	{
+  while(1)
+  {
     PORTC = (PORTC ^ _BV(PC0));
 
     //
@@ -81,18 +81,18 @@ LEDTask3(void* pvParameters)
       }
     }
     // ts_delay_ms(300);
-	}
+  }
 }
 #else
 static void
 LEDTask3(void* pvParameters)
 {
-	while(1)
-	{
+  while(1)
+  {
     PORTC = (PORTC ^ _BV(PC0));
 
     ts_delay_ms(70);
-	}
+  }
 }
 #endif
 
