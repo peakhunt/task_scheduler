@@ -10,4 +10,6 @@ extern void ts_hw_start_scheduler(void);
 extern void ts_hw_context_switch(void);
 extern void ts_hw_enter_idle_task(void);
 
+#define ts_hw_context_switch_from_isr() ts_hw_context_switch()
+
 #endif /* !__TASK_SCHEDULER_HW_DEF_H__ */

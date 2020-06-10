@@ -1,0 +1,58 @@
+A) ARM-CM3
+
+  -- when tick occurs,
+  a) tick irq or same/above is disabled by H/W          --> Tick IRQ disabled
+  b) raises base pri to disable further IRQs            --> IRQs disabled
+  c) handle tick based scheduling
+  d) lowers base pri to enable further IRQs             --> IRQs enabled
+  e) context switch does
+     1) riase base pri to disable IRQs                  --> IRQs disabled
+     2) invoke pendSV
+     3) lowers base pri to enable IRQs.                 --> IRQs enabled
+        PendSV is executed at this point
+
+  -- voluntary context switching
+  a) task runs syscall
+  b) syscall raises base pri to disable further IRQs    --> IRQs disabled
+  c) handle scheduling
+  d) syscall lowers base pri to enable further IRQs     --> IRQs enabled
+  e) context switch does
+      1) raises base pri to disable IRQs                --> IRQs diabled
+      2) invoke pendSV
+      3) lowers base pri to enable IRQs                 --> IRQs enabled
+         PendSV is executed at this point
+
+
+B) AVR
+  -- when tick occurs
+  a) IRQ is disabled by H/W                             --> IRQ disabled
+  b) tick handler disables IRQ                          --> IRQ disabled. nesting = 1
+  c) handle tick based scheduling
+  d) tick handles enables IRQ                           --> IRQ enabled. nesting = 0!!!
+     --> this is a dangerous point
+
+  e) context switch does
+      1) start saving context
+      2) status register is saved with IRQ enabled
+      3) disabled interrupt                             --> IRQs disabled
+      4) saves further context
+      5) restores context
+      6) status register is restored with IRQ enabled   --> IRQs enabled
+      7) reti is executed.                              --> IRQs enabled again!!! no problem!
+
+      -- so it looks quite funky and out of control but sematics make sense.
+         that's why the code is working
+
+  -- voluntary context switching
+  a) task runs syscall
+  b) syscall disables IRQs                              --> IRQs disabled
+  c) handle scheduling
+  d) syscall enables IRQs                               --> IRQs enabled
+  e) context switch does
+      1) start saving context
+      2) status register is saved with IRQ enabled
+      3) disabled interrupt                             --> IRQs disabled
+      4) saves further context
+      5) restores context
+      6) status register is restored with IRQ enabled   --> IRQs enabled
+      7) return

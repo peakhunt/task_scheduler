@@ -81,7 +81,7 @@ app/stm32f1xx_callbacks.c \
 ../task_scheduler/port/arm_cm3/task_scheduler_cm3.c
 
 APP_INCLUDES = \
--Iapp -I../task_scheduler
+-Iapp -I../task_scheduler -I../task_scheduler/port/arm_cm3
 
 C_SOURCES += $(APP_SORUCES)
 

@@ -115,7 +115,7 @@ ts_handle_tick(void)
 
   if(reschedule_needed)
   {
-    ts_hw_context_switch();
+    ts_hw_context_switch_from_isr();
   }
 }
 

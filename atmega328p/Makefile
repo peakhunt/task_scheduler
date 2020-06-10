@@ -29,7 +29,7 @@ AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET)
 AVRDUDE_FLAGS = -p m328p
 AVRDUDE_FLAGS += -c $(AVRDUDE_PROGRAMMER)
 
-INC_PATH= -I./ -I../task_scheduler
+INC_PATH= -I./ -I../task_scheduler -I../task_scheduler/port/avr
 
 CFLAGS = -mmcu=$(MCU)
 CFLAGS += -funsigned-char -funsigned-bitfields -DDEBUG
