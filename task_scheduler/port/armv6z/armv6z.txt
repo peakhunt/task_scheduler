@@ -1,0 +1,108 @@
+Exceptions are always handled in ARM state
+IRQs are disabled when an IRQ occurs by H/W
+FIQs and IRQs are disabled when an FIQ occurs
+
+*** ARM Stack is full descending
+    which means,
+
+    a) stack grows downwards (from high address to low address)
+    b) SP points to the last item pushed, not next free space.
+       so to push, SP should be decremented first.
+
+= ARM running mode
+  a) User/FIQ/IRQ/Supervisor/Abort/System/Undefined mode
+  b) stored in CPSR
+
+
+a) exception entry,
+
+    H/W does
+    0) IRQs are disabled when an IRQ occurs. 
+    a) R14_[irq|fiq] = PC + 4
+    b) SPSR_[irq|fiq] = CPSR
+    c) changes processor mode to FIQ or IRQ by modifying CPSR
+    d) PC = exception handler from the vector table
+
+    S/W does
+    a) whatever...
+
+b) exception return,
+    S/W does
+    a) PC = R14_[irq|fiq] - 4
+       usually
+       SUBS PC, LR, #4
+       //
+       // SUBS pc, lr, #imm subtracts a value from the link register and
+       // loads the PC with the result, then copies the SPSR to the CPSR.
+       //
+
+
+= Context Switching (ARM7)
+  http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.kui0100a/armasm_cihcadda.htm
+  
+  a) saving context
+      //
+      // before this
+      // an interrupt occurred and the processor switched to IRQ mode
+      //
+      STMDB  SP!, {R0}        // save R0 in stack. we will tamper it
+      STMDB  SP,{SP}^         // save SP_usr in stack
+      NOP                     // why this way??? why not '!' suffix?
+      SUB  SP, SP, #4         
+      LDMIA  SP!,{R0}         // R0 = SP_usr
+      STMDB  R0!, {LR}        // save LR in SP_usr
+      MOV  LR, R0             // LR = R0 = SP_usr
+      LDMIA  SP!, {R0}        // restore original R0
+      STMDB  LR,{R0-LR}^      // push user mode R0-R14 to LR(user mode SP). Even R13(SP) ???
+      NOP
+      SUB  LR, LR, #60        // LR(user mode SP) -= 60 ( 15 registers * 4 bytes = 60)
+
+      MRS  R0, SPSR           // R0 = SPSR
+      STMDB  LR!, {R0}        // Push R0 (SPSR) into LR (user mode SP)
+
+      LDR  R0, =ulCriticalNesting     
+      LDR  R0, [R0]                   // R0 = ulCriticalNesting
+      STMDB  LR!, {R0}                // push ulCriticalNesting to user mode stack
+
+      LDR  R0, =pxCurrentTCB          //
+      LDR  R0, [R0]                   // R0 = pxCurrentTCB
+      STR  LR, [R0]                   // pxCurrentTCB->sp_top = LR (user mode SP)
+
+
+      //
+      // so user mode stack layout is
+      //
+
+
+      ----------------------
+      LR (R14. interrupted PC(R15) in user mode)
+      R0
+      R1
+      ...
+      R14
+      SPSR
+      ulCriticalNesting                       <--- top of the stack
+      ----------------------
+
+  b) restoring context
+			LDR R0, =pxCurrentTCB
+      LDR R0, [R0]
+      LDR LR, [R0]                    // LR = pxCurrentTCB->sp_top
+                                    
+      LDR R0, =ulCriticalNesting      // R0 = &ulCriticalNesting
+      LDMFD  LR!, {R1}                // pop SP_usr. R1 = ulCriticalNesting from SP_usr
+      STR    R1, [R0]                 // ulCriticalNesting = R1
+
+      LDMFD  LR!, {R0}                // pop SP_usr. R0 = SPSR from SP_usr
+      MSR    SPSR, R0                 // SPSR = R0
+
+      LDMFD  LR, {R0-R14}^            // pop SP_Usr. R0-R14_usr from SP_usr
+      NOP
+
+      LDR    LR, [LR, #+60]           // LR = LR from SP_Usr, that is PC saved in user mode stack
+
+      SUBS PC, LR, #4                 //
+                                      // PC = LR - 4
+                                      // SUBS pc, lr, #imm subtracts a value from the link register and loads the PC
+                                      // with the result, then copies the SPSR to the CPSR.
+                                      //
