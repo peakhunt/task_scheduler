@@ -29,9 +29,6 @@ __start_first_task(void)
     "LDR R0, [R0]                 \n"
     "LDR LR, [R0]                 \n"     // LR = pxCurrentTCB->sp_top
 
-    //"LDR R0, =ulCriticalNesting   \n"     // R0 = &ulCriticalNesting
-    //"LDMFD  LR!, {R1}             \n"     // pop SP_usr. R1 = ulCriticalNesting from SP_usr
-    //"STR    R1, [R0]              \n"     // ulCriticalNesting = R1
     "LDMFD  LR!, {R0}             \n"     // pop SP_usr. R0 = SPSR from SP_usr
     "MSR    SPSR, R0              \n"     // SPSR = R0
 
@@ -39,11 +36,6 @@ __start_first_task(void)
     "NOP                          \n"
     "LDR    LR, [LR, #+60]        \n"     // LR = LR from SP_Usr, that is PC saved in user mode stack
     "MOVS PC, LR                  \n"
-    //"SUBS PC, LR, #4              \n"     //
-                                          // PC = LR - 4
-                                          // SUBS pc, lr, #imm subtracts a value from the link register and loads the PC
-                                          // with the result, then copies the SPSR to the CPSR.
-                                          //
   );
 }
 
@@ -84,9 +76,6 @@ void __ts_hw_swi_handler(void)
     "SUB  LR, LR, #60             \n"     // LR(user mode SP) -= 60 ( 15 registers * 4 bytes = 60)
     "MRS  R0, SPSR                \n"     // R0 = SPSR
     "STMDB  LR!, {R0}             \n"     // Push R0 (SPSR) into LR (user mode SP)
-    //"LDR  R0, =ulCriticalNesting  \n"
-    //"LDR  R0, [R0]                \n"     // R0 = ulCriticalNesting    
-    //"STMDB  LR!, {R0}             \n"     // push ulCriticalNesting to user mode stack
     "LDR  R0, =_current_task      \n"     //
     "LDR  R0, [R0]                \n"     // R0 = _current_task
     "STR  LR, [R0]                \n"     // _current_task->sp_top = LR (user mode SP)
@@ -101,9 +90,6 @@ void __ts_hw_swi_handler(void)
     "LDR R0, [R0]                 \n"
     "LDR LR, [R0]                 \n"     // LR = pxCurrentTCB->sp_top
 
-    //"LDR R0, =ulCriticalNesting   \n"     // R0 = &ulCriticalNesting
-    //"LDMFD  LR!, {R1}             \n"     // pop SP_usr. R1 = ulCriticalNesting from SP_usr
-    //"STR    R1, [R0]              \n"     // *ulCriticalNesting = R1
     "LDMFD  LR!, {R0}             \n"     // pop SP_usr. R0 = SPSR from SP_usr
     "MSR    SPSR, R0              \n"     // SPSR = R0
 
@@ -111,11 +97,6 @@ void __ts_hw_swi_handler(void)
     "NOP                          \n"
     "LDR    LR, [LR, #+60]        \n"     // LR = LR from SP_Usr, that is PC saved in user mode stack
     "MOVS PC, LR                  \n"
-    //"SUBS PC, LR, #4              \n"     //
-                                          // PC = LR - 4
-                                          // SUBS pc, lr, #imm subtracts a value from the link register and loads the PC
-                                          // with the result, then copies the SPSR to the CPSR.
-                                          //
   );
 }
 
@@ -152,9 +133,6 @@ void __ts_hw_irq_handler(void)
     "SUB  LR, LR, #60             \n"     // LR(user mode SP) -= 60 ( 15 registers * 4 bytes = 60)
     "MRS  R0, SPSR                \n"     // R0 = SPSR
     "STMDB  LR!, {R0}             \n"     // Push R0 (SPSR) into LR (user mode SP)
-    //"LDR  R0, =ulCriticalNesting  \n"
-    //"LDR  R0, [R0]                \n"     // R0 = ulCriticalNesting    
-    //"STMDB  LR!, {R0}             \n"     // push ulCriticalNesting to user mode stack
     "LDR  R0, =_current_task      \n"     //
     "LDR  R0, [R0]                \n"     // R0 = _current_task
     "STR  LR, [R0]                \n"     // _current_task->sp_top = LR (user mode SP)
@@ -170,9 +148,6 @@ void __ts_hw_irq_handler(void)
     "LDR R0, [R0]                 \n"
     "LDR LR, [R0]                 \n"     // LR = pxCurrentTCB->sp_top
 
-    //"LDR R0, =ulCriticalNesting   \n"     // R0 = &ulCriticalNesting
-    //"LDMFD  LR!, {R1}             \n"     // pop SP_usr. R1 = ulCriticalNesting from SP_usr
-    //"STR    R1, [R0]              \n"     // *ulCriticalNesting = R1
     "LDMFD  LR!, {R0}             \n"     // pop SP_usr. R0 = SPSR from SP_usr
     "MSR    SPSR, R0              \n"     // SPSR = R0
 
@@ -196,11 +171,7 @@ ts_hw_context_switch(void)
 void
 ts_hw_context_switch_from_isr(void)
 {
-  //
-  // nothing to do here
-  // irq handler entry will
-  // automatically do this
-  //
+  ts_pick_new_task();
 }
 
 void
@@ -261,12 +232,8 @@ ts_hw_initialize_task_stack(task_t* task, task_entry_t entry, void* arg)
   *(task->sp_top) = ( StackType_t ) arg;                /* R0 */
   task->sp_top--;
 
-  /* 
-     The last thing onto the stack is the status register, which is set for
-     system mode, with interrupts enabled.
-   */
   *(task->sp_top) = ( StackType_t ) portINITIAL_SPSR;
-  //task->sp_top--;
+  //task->sp_top--;   full descending stack!
 }
 
 void
@@ -323,13 +290,8 @@ __ts_hw_setup_timer(void)
 {
   unsigned long ulCompareMatch;
 
-
-  /* Calculate the match value required for our wanted tick rate. */
-  // ulCompareMatch = 1000000 / configTICK_RATE_HZ;
   ulCompareMatch = 1000000 / TASK_SCHEDULER_CONFIG_TICK_HERTZ;
 
-  /* Protect against divide by zero.  Using an if() statement still results
-     in a warning - hence the #if. */
 #if portPRESCALE_VALUE != 0
   {
     ulCompareMatch /= ( portPRESCALE_VALUE + 1 );
