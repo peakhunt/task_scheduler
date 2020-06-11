@@ -1,0 +1,4 @@
+|Run file for Munchie
+Set Munchie$Dir <Obey$Dir>
+WimpSlot -min 192k -max 192k
+Run <Munchie$Dir>.!RunImage

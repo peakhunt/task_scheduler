@@ -1,0 +1,55 @@
+https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/README.md
+
+jtag setup
+==========
+https://sysprogs.com/VisualKernel/tutorials/raspberry/jtagsetup/
+
+config.txt
+===========
+https://www.raspberrypi.org/documentation/configuration/config-txt/gpio.md
+
+JTAG setup
+============
+3V3
+GND
+ARM_TRST      : GPIO22    ALT4
+ARM_RTCK      : GPIO23    ALT4
+ARM_TDO       : GPIO24    ALT4
+ARM_TCK       : GPIO25    ALT4
+ARM_TDI       : GPIO4     ALT5
+ARM_TMS       : GPIO27    ALT4
+
+CONFIG.TXT
+===================
+gpio=22,23,24,25,27=a4
+gpio=4=a5
+
+openocd command
+====================
+openocd -f interface/jlink.cfg -f board/rpiv1.cfg
+
+
+
+rpiv1.cfg
+==========================
+adapter_khz 1000
+adapter_nsrst_delay 400
+reset_config none
+
+if { [info exists CHIPNAME] } {
+set _CHIPNAME $CHIPNAME
+} else {
+set _CHIPNAME rspi
+}
+
+if { [info exists CPU_TAPID ] } {
+set _CPU_TAPID $CPU_TAPID
+} else {
+set _CPU_TAPID 0x07b7617F
+}
+
+jtag newtap $_CHIPNAME arm -irlen 5 -expected-id $_CPU_TAPID
+
+set _TARGETNAME $_CHIPNAME.arm
+target create $_TARGETNAME arm11 -chain-position $_TARGETNAME
+rspi.arm configure -event gdb-attach { halt }

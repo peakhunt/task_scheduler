@@ -1,0 +1,30 @@
+            First Steps in Programming RISC OS Computers
+            ============================================
+
+This DTP document and associated software files are copyright Martyn Fox
+1993, 2001, but may be freely copied and distributed in digital form,
+including distribution via the Internet or by magazine discs, PD libraries,
+email, bulletin boards etc., provided the following conditions are adhered
+to:
+
+1. No charge is made other than to cover the reasonable cost of duplication
+and distribution.
+
+2. No alteration is made to either the DTP document or the software files.
+
+The DTP document may be printed in either monochrome or colour. Limited
+distribution of individual printed copies is permitted provided that copies
+are accompanied by the software files on a suitable medium (e.g. a floppy
+disc) and that no alteration is made to either the DTP document (including
+its layout) or the software files.
+
+Organised distribution of printed copies, other than of single copies, may
+only be carried out by prior agreement with the copyright holder. For
+further details, email Christine Fox:
+
+christine.fox099@btinternet.com
+
+Please send any technical questions concerning the content of the document
+to Christopher Fox:
+
+chrisfox80@gmail.com

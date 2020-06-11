@@ -1,0 +1,8 @@
+https://raspberrypi.stackexchange.com/questions/10442/what-is-the-boot-sequence
+
+a) GPU turns on (CPU is still OFF)
+b) GPU ROM execute
+c) GPU ROM loads bootcode.bin into L2 cache and runs it
+d) bootcode.bin runs. initializes SDRAM
+e) bootcode.bin loads start.elf and executes it
+f) start.elf reads config.txt and loads/runs configured XXXX.img 
