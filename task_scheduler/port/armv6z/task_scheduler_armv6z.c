@@ -179,6 +179,7 @@ ts_hw_initialize_task_stack(task_t* task, task_entry_t entry, void* arg)
 {
   StackType_t* original_tos = (StackType_t*)task->sp_top;
 
+  task->sp_top--;
   /*
      First on the stack is the return address - which in this case is the
      start of the task.  The offset is added to make the return address appear
@@ -233,7 +234,6 @@ ts_hw_initialize_task_stack(task_t* task, task_entry_t entry, void* arg)
   task->sp_top--;
 
   *(task->sp_top) = ( StackType_t ) portINITIAL_SPSR;
-  //task->sp_top--;   full descending stack!
 }
 
 void
