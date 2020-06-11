@@ -1,5 +1,6 @@
 #include "task_scheduler_hw.h"
 #include "irq.h"
+#include "gpio.h"
 
 //
 // in this port,
@@ -20,6 +21,9 @@ void __start_first_task(void) __attribute__ (( naked ));
 void
 __start_first_task(void)
 {
+  //
+  // just return from Supervisor mode to system mode
+  //
   __asm volatile (
     "LDR R0, =_current_task       \n"
     "LDR R0, [R0]                 \n"
@@ -27,14 +31,15 @@ __start_first_task(void)
 
     //"LDR R0, =ulCriticalNesting   \n"     // R0 = &ulCriticalNesting
     //"LDMFD  LR!, {R1}             \n"     // pop SP_usr. R1 = ulCriticalNesting from SP_usr
-    //"STR    R1, [R0]              \n"     // *ulCriticalNesting = R1
+    //"STR    R1, [R0]              \n"     // ulCriticalNesting = R1
     "LDMFD  LR!, {R0}             \n"     // pop SP_usr. R0 = SPSR from SP_usr
     "MSR    SPSR, R0              \n"     // SPSR = R0
 
     "LDMFD  LR, {R0-R14}^         \n"     // pop SP_Usr. R0-R14_usr from SP_usr
     "NOP                          \n"
     "LDR    LR, [LR, #+60]        \n"     // LR = LR from SP_Usr, that is PC saved in user mode stack
-    "SUBS PC, LR, #4              \n"     //
+    "MOVS PC, LR                  \n"
+    //"SUBS PC, LR, #4              \n"     //
                                           // PC = LR - 4
                                           // SUBS pc, lr, #imm subtracts a value from the link register and loads the PC
                                           // with the result, then copies the SPSR to the CPSR.
@@ -50,6 +55,8 @@ __ts_hw_systick_handler_callback(void)
   // for convenience
   //
   // do nothing
+
+  // test
 }
 
 extern void irqHandler(void);
@@ -57,7 +64,10 @@ extern void irqHandler(void);
 void __ts_hw_swi_handler(void) __attribute__((naked));
 void __ts_hw_swi_handler(void)
 {
-  __asm volatile ( "ADD   LR, LR, #4" );
+  //
+  // runs in supervisor mode
+  // IRQs are blocked upon entering SVC mode
+  //
 
   /* Perform the context switch.  First save the context of the current task. */
   __asm volatile (
@@ -100,7 +110,8 @@ void __ts_hw_swi_handler(void)
     "LDMFD  LR, {R0-R14}^         \n"     // pop SP_Usr. R0-R14_usr from SP_usr
     "NOP                          \n"
     "LDR    LR, [LR, #+60]        \n"     // LR = LR from SP_Usr, that is PC saved in user mode stack
-    "SUBS PC, LR, #4              \n"     //
+    "MOVS PC, LR                  \n"
+    //"SUBS PC, LR, #4              \n"     //
                                           // PC = LR - 4
                                           // SUBS pc, lr, #imm subtracts a value from the link register and loads the PC
                                           // with the result, then copies the SPSR to the CPSR.
@@ -255,7 +266,7 @@ ts_hw_initialize_task_stack(task_t* task, task_entry_t entry, void* arg)
      system mode, with interrupts enabled.
    */
   *(task->sp_top) = ( StackType_t ) portINITIAL_SPSR;
-  task->sp_top--;
+  //task->sp_top--;
 }
 
 void
@@ -301,11 +312,13 @@ __ts_tick_isr(unsigned int nIRQ, void *pParam)
 
   _in_irq = 1;
   __ts_hw_systick_handler_callback();
-  ts_handle_tick();
+   ts_handle_tick();
   _in_irq = 0;
+
+  pRegs->CLI = 0;     // Acknowledge the timer interrupt.
 }
 
-static void
+void
 __ts_hw_setup_timer(void)
 {
   unsigned long ulCompareMatch;
@@ -325,8 +338,6 @@ __ts_hw_setup_timer(void)
   (void)ulCompareMatch;
 #endif
 
-  irqBlock();
-
   pRegs->CTL = 0x003E0000;
   pRegs->LOD = 1000 - 1;
   pRegs->RLD = 1000 - 1;
@@ -337,15 +348,19 @@ __ts_hw_setup_timer(void)
   irqRegister(64, __ts_tick_isr, NULL);
 
   irqEnable(64);
-
-  irqUnblock();
 }
 
 void
 ts_hw_start_scheduler(void)
 {
+  // XXX IRQs are already disabled.
+
   __ts_hw_setup_timer();
   __start_first_task();
+
+  while(1)
+  {
+  }
 }
 
 void
