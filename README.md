@@ -1,5 +1,5 @@
 # task_scheduler
-This is a toy level task scheduler for various micro controllers.
+This is a toy level task scheduler for various micro controllers. 
 Please use it at your own risk. This is my hobby project and going through dangerous experiment!
 
 ## goals
