@@ -13,11 +13,13 @@
 #define portINSTRUCTION_SIZE        ((StackType_t)4)
 #define portINITIAL_SPSR            ((StackType_t)0x1f) /* System mode, ARM mode, interrupts enabled. */
 
+#define dsb(x) __asm__ __volatile__ ("mcr p15, 0, %0, c7, c10, 4" : : "r" (0) : "memory")
+
 static volatile uint8_t   _in_irq = 0;
 
 void __ts_hw_systick_handler_callback(void) __attribute__ (( weak ));
-void __start_first_task(void) __attribute__ (( naked ));
 
+void __start_first_task(void) __attribute__ (( naked ));
 void
 __start_first_task(void)
 {
@@ -35,7 +37,8 @@ __start_first_task(void)
     "LDMFD  LR, {R0-R14}^         \n"     // pop SP_Usr. R0-R14_usr from SP_usr
     "NOP                          \n"
     "LDR    LR, [LR, #+60]        \n"     // LR = LR from SP_Usr, that is PC saved in user mode stack
-    "MOVS PC, LR                  \n"
+    //"MOVS PC, LR                  \n"
+    "SUBS PC, LR, #4              \n"     //
   );
 }
 
@@ -60,6 +63,7 @@ void __ts_hw_swi_handler(void)
   // runs in supervisor mode
   // IRQs are blocked upon entering SVC mode
   //
+  __asm volatile ( "ADD   LR, LR, #4" );
 
   /* Perform the context switch.  First save the context of the current task. */
   __asm volatile (
@@ -82,7 +86,7 @@ void __ts_hw_swi_handler(void)
   );
 
   /* Find the highest priority task that is ready to run. */
-  ts_pick_new_task();
+  __asm volatile ("bl ts_pick_new_task  \n");
 
   /* Restore the context of the new task. */
   __asm volatile (
@@ -96,7 +100,8 @@ void __ts_hw_swi_handler(void)
     "LDMFD  LR, {R0-R14}^         \n"     // pop SP_Usr. R0-R14_usr from SP_usr
     "NOP                          \n"
     "LDR    LR, [LR, #+60]        \n"     // LR = LR from SP_Usr, that is PC saved in user mode stack
-    "MOVS PC, LR                  \n"
+    //"MOVS PC, LR                  \n"
+    "SUBS PC, LR, #4              \n"     //
   );
 }
 
@@ -138,7 +143,7 @@ void __ts_hw_irq_handler(void)
     "STR  LR, [R0]                \n"     // _current_task->sp_top = LR (user mode SP)
   );
 
-  irqHandler();
+  __asm volatile ("bl irqHandler  \n");
 
   //
   // restore context
@@ -247,9 +252,9 @@ ts_hw_disable_interrupts(void)
 void
 ts_hw_enable_interrupts(void)
 {
-  if(_in_irq) return;
+  // dsb(0);
 
-  // FIXME memory barrier
+  if(_in_irq) return;
 
   irqUnblock();
 }
@@ -280,7 +285,7 @@ __ts_tick_isr(unsigned int nIRQ, void *pParam)
   _in_irq = 1;
   __ts_hw_systick_handler_callback();
    ts_handle_tick();
-  _in_irq = 0;
+   _in_irq = 0;
 
   pRegs->CLI = 0;     // Acknowledge the timer interrupt.
 }

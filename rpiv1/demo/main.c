@@ -2,7 +2,7 @@
 #include "gpio.h"
 #include "task_scheduler.h"
 
-#define TASK_STACK_SIZE     256
+#define TASK_STACK_SIZE     512
 
 task_t       _task1;
 task_t       _task2;
@@ -17,35 +17,11 @@ StackType_t  _task4_stack[TASK_STACK_SIZE] TASK_SCHEDULER_CONFIG_STACK_ALIGN;
 static void
 set_gpio(int pin, int v)
 {
-  irqBlock();
+  //irqBlock();
   SetGpio(pin, v);
-  irqUnblock();
+  //irqUnblock();
 }
 
-#if 0
-void
-task1(void *pParam)
-{
-  int i = 0;
-
-  (void)pParam;
-  while(1)
-  {
-    SetGpio(16, 1);
-    //ts_delay_ms(50);
-
-    for(i = 0; i < 300000; i++)
-    {
-    }
-
-    SetGpio(16, 0);
-    //ts_delay_ms(50);
-    for(i = 0; i < 300000; i++)
-    {
-    }
-  }
-}
-#else
 void
 task1(void *pParam)
 {
@@ -54,41 +30,40 @@ task1(void *pParam)
   {
     set_gpio(16, 1);
 
-    ts_delay_ms(100);
+    ts_delay_ms(1000);
 
     set_gpio(16, 0);
 
-    ts_delay_ms(100);
+    ts_delay_ms(1000);
   }
 }
-#endif
 
 void
-task2(void *pParam)
+task2(void *pParam)   // first led
 {
   (void)pParam;
 
   while(1)
   {
-#if 0
-    ts_delay_ms(50);
+#if 1
+    ts_delay_ms(500);   
     set_gpio(9, 0);
-    ts_delay_ms(50);
+    ts_delay_ms(500);
     set_gpio(9, 1);
 #endif
   }
 }
 
 void
-task3(void *pParam)
+task3(void *pParam)   // 2nd led
 {
   (void)pParam;
 
   while(1)
   {
-    ts_delay_ms(1100);
+    ts_delay_ms(1500);
     set_gpio(10, 0);
-    ts_delay_ms(1100);
+    ts_delay_ms(1500);
     set_gpio(10, 1);
   }
 }
@@ -100,10 +75,21 @@ task4(void *pParam)
 
   while(1)
   {
-    ts_delay_ms(2000);
+#if 0
+    ts_delay_ms(500);
     set_gpio(11, 0);
-    ts_delay_ms(2000);
+    ts_delay_ms(500);
     set_gpio(11, 1);
+#else
+    for(int i = 0; i < 300000; i++)
+    {
+    }
+    set_gpio(11, 0);
+    for(int i = 0; i < 300000; i++)
+    {
+    }
+    set_gpio(11, 1);
+#endif
   }
 }
 
@@ -119,9 +105,9 @@ main (void)
 {
   SetGpioFunction(16, 1);			// RDY led
 
-  SetGpioFunction(9, 1);			// RDY led
-  SetGpioFunction(10, 1);			// RDY led
-  SetGpioFunction(11, 1);			// RDY led
+  SetGpioFunction(9, 1);
+  SetGpioFunction(10, 1);
+  SetGpioFunction(11, 1);
 
   ts_init();
 
